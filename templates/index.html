@@ -4,32 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UDP Broadcast Receiver</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            text-align: center;
-        }
-        h1 {
-            margin-bottom: 20px;
-        }
-        p {
-            font-size: 18px;
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>UDP Broadcast Receiver</h1>
-        <p>This web page is designed to receive UDP broadcast data.</p>
-        <p>To receive data, visit <a href="/data">/data</a>.</p>
+    <div id="data-container">
+        <!-- Data will be displayed here -->
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function fetchData() {
+                $.get('/data', function(response) {
+                    $('#data-container').html('<p>' + response + '</p>');
+                });
+            }
+
+            // Fetch data initially
+            fetchData();
+
+            // Fetch data every 5 seconds
+            setInterval(fetchData, 1000);
+        });
+    </script>
 </body>
 </html>
