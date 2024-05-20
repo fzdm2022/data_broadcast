@@ -4,27 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UDP Broadcast Receiver</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
 </head>
 <body>
-    <div id="data-container">
+    <div id="data-container" style="overflow-y: scroll; height: 100vh;">
         <!-- Data will be displayed here -->
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function() {
-            function fetchData() {
-                $.get('/data', function(response) {
-                    $('#data-container').html('<p>' + response + '</p>');
-                });
-            }
+        var socket = io();
 
-            // Fetch data initially
-            fetchData();
-
-            // Fetch data every 5 seconds
-            setInterval(fetchData, 1000);
+        socket.on('data', function(data) {
+            $('#data-container').append('<p>' + data + '</p>');  // Append the new data
+            scrollContainerToBottom($('#data-container')); // Scroll to the bottom
         });
+
+        function scrollContainerToBottom(container) {
+            container.scrollTop(container[0].scrollHeight);
+        }
+
+        // Update the webpage every second
+        setInterval(function() {
+            // Trigger a request to the server to fetch updates
+            // Note: You may need to modify this URL based on your server setup
+            $.ajax({
+                url: '/data',
+                type: 'GET',
+                success: function(data) {
+                    // Handle the received data (if needed)
+                }
+            });
+        }, 1000); // Update every second (1000 milliseconds)
     </script>
 </body>
 </html>
