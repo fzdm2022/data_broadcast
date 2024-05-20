@@ -12,11 +12,28 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            font-family: Arial, sans-serif;
         }
         #data-container {
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+            background-color: #f9f9f9;
+        }
+        #log-info {
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: #555;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -26,27 +43,86 @@
     <div id="data-container">
         <!-- Only the newest data will be displayed here -->
     </div>
+    <div id="log-info">
+        <!-- Log file path will be displayed here -->
+    </div>
+    <button id="toggle-log">Save Log</button> <!-- Button to toggle logging -->
 
     <script>
         var socket = io();
+        var logging = false;
+        var logFileHandle;
+
+        async function toggleLogging() {
+            logging = !logging;
+            if (logging) {
+                $('#toggle-log').text('Stop Logging');
+                logFileHandle = await openLogFile();
+                if (logFileHandle) {
+                    $('#log-info').text(`Logging to: ${logFileHandle.name}`);
+                }
+            } else {
+                $('#toggle-log').text('Save Log');
+                $('#log-info').text('');
+                if (logFileHandle) {
+                    await logFileHandle.close();
+                    logFileHandle = null;
+                }
+            }
+        }
+
+        async function openLogFile() {
+            try {
+                const opts = {
+                    type: 'save-file',
+                    accepts: [{
+                        description: 'Text Files',
+                        extensions: ['txt'],
+                        mimeTypes: ['text/plain'],
+                    }],
+                };
+                const handle = await window.showSaveFilePicker(opts);
+                const writable = await handle.createWritable();
+                return writable;
+            } catch (e) {
+                console.error('Error opening log file:', e);
+                return null;
+            }
+        }
+
+        async function appendToLogFile(data) {
+            if (!logFileHandle) return;
+            try {
+                await logFileHandle.write(data + '\n');
+                await logFileHandle.flush(); // Ensure data is written immediately
+            } catch (e) {
+                console.error('Error writing to log file:', e);
+            }
+        }
 
         socket.on('data', function(data) {
-            // Update the content of the data container with the newest data
             $('#data-container').text(data);
+            if (logging && logFileHandle) {
+                appendToLogFile(data);
+            }
         });
+
+        $('#toggle-log').click(toggleLogging);
 
         // Update the webpage every second
         setInterval(function() {
-            // Trigger a request to the server to fetch updates
-            // Note: You may need to modify this URL based on your server setup
             $.ajax({
-                url: '/data',
+                url: '/latest_data',
                 type: 'GET',
-                success: function(data) {
-                    // Handle the received data (if needed)
+                success: function(response) {
+                    const data = response.data;
+                    $('#data-container').text(data);
+                    if (logging && logFileHandle) {
+                        appendToLogFile(data);
+                    }
                 }
             });
-        }, 500); // Update every second (1000 milliseconds)
+        }, 1000); // Update every second (1000 milliseconds)
     </script>
 </body>
 </html>
