@@ -6,6 +6,12 @@
     <title>UDP Broadcast Receiver</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+    <style>
+        #data-container {
+            overflow-y: scroll;
+            height: 100vh; /* Fill the entire viewport height */
+        }
+    </style>
 </head>
 <body>
     <div id="data-container">
@@ -16,8 +22,13 @@
         var socket = io();
 
         socket.on('data', function(data) {
-            $('#data-container').append('<p>' + data + '</p>');  // Use append to show all messages
+            $('#data-container').append('<p>' + data + '</p>');  // Append the new data
+            scrollContainerToBottom($('#data-container')); // Scroll to the bottom
         });
+
+        function scrollContainerToBottom(container) {
+            container.scrollTop(container[0].scrollHeight);
+        }
     </script>
 </body>
 </html>

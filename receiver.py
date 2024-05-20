@@ -4,7 +4,7 @@ import socket
 import threading
 
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins="*")  # Specify gevent as the async mode
+socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins="*")
 
 UDP_IP = "0.0.0.0"  # Listen on all available interfaces
 UDP_PORT = 5007
@@ -13,20 +13,14 @@ UDP_PORT = 5007
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((UDP_IP, UDP_PORT))
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 1024)  # Increase buffer size
-
-# List to store connected clients
-connected_clients = set()
+sock.setblocking(False)  # Set socket to non-blocking
 
 @socketio.on('connect')
 def handle_connect():
-    # Add client to the list of connected clients
-    connected_clients.add(request.sid)
     print(f'Client connected: {request.sid}')
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    # Remove client from the list of connected clients
-    connected_clients.remove(request.sid)
     print(f'Client disconnected: {request.sid}')
 
 def broadcast_data(data):
@@ -41,9 +35,10 @@ def receive_udp_data():
     while True:
         try:
             data, addr = sock.recvfrom(1024)
-            broadcast_data(data.decode('utf-8'))
-        except Exception as e:
-            print(f"Error receiving data: {e}")
+            if data:
+                broadcast_data(data.decode('utf-8'))
+        except BlockingIOError:
+            pass
 
 def get_ip_address():
     """Get the local IP address of the server."""
