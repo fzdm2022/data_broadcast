@@ -6,15 +6,9 @@
     <title>UDP Broadcast Receiver</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
-    <style>
-        #data-container {
-            overflow-y: scroll;
-            height: 100vh; /* Fill the entire viewport height */
-        }
-    </style>
 </head>
 <body>
-    <div id="data-container">
+    <div id="data-container" style="overflow-y: scroll; height: 100vh;">
         <!-- Data will be displayed here -->
     </div>
 
@@ -29,6 +23,19 @@
         function scrollContainerToBottom(container) {
             container.scrollTop(container[0].scrollHeight);
         }
+
+        // Update the webpage every second
+        setInterval(function() {
+            // Trigger a request to the server to fetch updates
+            // Note: You may need to modify this URL based on your server setup
+            $.ajax({
+                url: '/data',
+                type: 'GET',
+                success: function(data) {
+                    // Handle the received data (if needed)
+                }
+            });
+        }, 1000); // Update every second (1000 milliseconds)
     </script>
 </body>
 </html>

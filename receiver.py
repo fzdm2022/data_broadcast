@@ -32,11 +32,15 @@ def index():
     return render_template('index.html')
 
 def receive_udp_data():
+    i = 0
     while True:
+        i += 1
         try:
+            # print("getting data")
             data, addr = sock.recvfrom(1024)
             if data:
                 broadcast_data(data.decode('utf-8'))
+                # print("line number: ", str(i))
         except BlockingIOError:
             pass
 
