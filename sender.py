@@ -17,7 +17,7 @@ while True:
     # Send data via UDP broadcast
     sock.sendto(message.encode('utf-8'), (UDP_IP, UDP_PORT))
     print("send:", message)
-    time.sleep(2)
+    time.sleep(1)
 
 # Close the socket
 sock.close()
