@@ -111,6 +111,7 @@
                 appendedData.push(currentData);
                 localStorage.setItem('appendedData', JSON.stringify(appendedData));
                 $('#appended-data').append('<p>' + currentData + '</p>');
+                scrollToBottom('#appended-data-container');
                 $('#appended-data-container').show();
                 $('#download-appended-data').show();
                 $('#clear-appended-data').show();
@@ -148,6 +149,11 @@
                 $('#download-appended-data').show();
                 $('#clear-appended-data').show();
             }
+        }
+
+        function scrollToBottom(selector) {
+        var element = document.querySelector(selector);
+        element.scrollTop = element.scrollHeight;
         }
 
         socket.on('data', function(data) {
