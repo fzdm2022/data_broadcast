@@ -17,26 +17,32 @@ sock.setblocking(False)  # Set socket to non-blocking
 
 latest_data = ""
 
+
 @socketio.on('connect')
 def handle_connect():
     print(f'Client connected: {request.sid}')
 
+
 @socketio.on('disconnect')
 def handle_disconnect():
     print(f'Client disconnected: {request.sid}')
+
 
 def broadcast_data(data):
     global latest_data
     latest_data = data
     socketio.emit('data', data)
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/latest_data', methods=['GET'])
 def get_latest_data():
     return jsonify({"data": latest_data})
+
 
 def receive_udp_data():
     while True:
@@ -46,6 +52,7 @@ def receive_udp_data():
                 broadcast_data(data.decode('utf-8'))
         except BlockingIOError:
             pass
+
 
 def get_ip_address():
     """Get the local IP address of the server."""
@@ -58,6 +65,7 @@ def get_ip_address():
     finally:
         s.close()
     return ip
+
 
 if __name__ == '__main__':
     udp_thread = threading.Thread(target=receive_udp_data)
