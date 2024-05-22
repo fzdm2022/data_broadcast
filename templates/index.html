@@ -34,6 +34,19 @@
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            margin: 5px;
+        }
+        #appended-data-container {
+            margin-top: 20px;
+            width: 80%;
+            max-width: 600px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: none; /* Hidden initially */
+            overflow-y: auto; /* Enable vertical scrollbar */
+            max-height: 200px; /* Limit max height */
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -47,11 +60,22 @@
         <!-- Log file path will be displayed here -->
     </div>
     <button id="toggle-log">Save Log</button> <!-- Button to toggle logging -->
+    <button id="append-data">Append Data</button> <!-- Button to append current data -->
+    <button id="download-appended-data" style="display: none;">Download Appended Data</button> <!-- Button to download appended data -->
+    <button id="clear-appended-data" style="display: none;">Clear Appended Data</button> <!-- Button to clear appended data -->
+
+    <div id="appended-data-container">
+        <h3>Appended Data:</h3>
+        <div id="appended-data">
+            <!-- Appended data will be displayed here -->
+        </div>
+    </div>
 
     <script>
         var socket = io();
         var logging = false;
         var logData = JSON.parse(localStorage.getItem('logData')) || [];
+        var appendedData = JSON.parse(localStorage.getItem('appendedData')) || [];
 
         function toggleLogging() {
             logging = !logging;
@@ -81,6 +105,51 @@
             window.URL.revokeObjectURL(url);
         }
 
+        function appendCurrentData() {
+            const currentData = $('#data-container').text();
+            if (currentData) {
+                appendedData.push(currentData);
+                localStorage.setItem('appendedData', JSON.stringify(appendedData));
+                $('#appended-data').append('<p>' + currentData + '</p>');
+                $('#appended-data-container').show();
+                $('#download-appended-data').show();
+                $('#clear-appended-data').show();
+            }
+        }
+
+        function downloadAppendedData() {
+            const data = appendedData.join('\n');
+            const blob = new Blob([data], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'appended_data.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function clearAppendedData() {
+            appendedData = [];
+            localStorage.removeItem('appendedData');
+            $('#appended-data').empty();
+            $('#appended-data-container').hide();
+            $('#download-appended-data').hide();
+            $('#clear-appended-data').hide();
+        }
+
+        function restoreAppendedData() {
+            appendedData.forEach(data => {
+                $('#appended-data').append('<p>' + data + '</p>');
+            });
+            if (appendedData.length > 0) {
+                $('#appended-data-container').show();
+                $('#download-appended-data').show();
+                $('#clear-appended-data').show();
+            }
+        }
+
         socket.on('data', function(data) {
             $('#data-container').text(data);
             if (logging && (!logData.length || logData[logData.length - 1] !== data)) {
@@ -90,6 +159,9 @@
         });
 
         $('#toggle-log').click(toggleLogging);
+        $('#append-data').click(appendCurrentData);
+        $('#download-appended-data').click(downloadAppendedData);
+        $('#clear-appended-data').click(clearAppendedData);
 
         // Restore logging state from localStorage
         if (localStorage.getItem('logging') === 'true') {
@@ -98,10 +170,13 @@
             $('#log-info').text('Logging started...');
         }
 
+        // Restore appended data from localStorage
+        restoreAppendedData();
+
         // Update the webpage every second
         setInterval(function() {
             socket.emit('request_update');
-        }, 10); // Update every second (1000 milliseconds)
+        }, 1000); // Update every second (1000 milliseconds)
     </script>
 </body>
 </html>
