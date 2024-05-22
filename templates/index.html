@@ -51,77 +51,55 @@
     <script>
         var socket = io();
         var logging = false;
-        var logFileHandle;
+        var logData = JSON.parse(localStorage.getItem('logData')) || [];
 
-        async function toggleLogging() {
+        function toggleLogging() {
             logging = !logging;
             if (logging) {
                 $('#toggle-log').text('Stop Logging');
-                logFileHandle = await openLogFile();
-                if (logFileHandle) {
-                    $('#log-info').text(`Logging to: ${logFileHandle.name}`);
-                }
+                $('#log-info').text('Logging started...');
+                localStorage.setItem('logging', true);
             } else {
                 $('#toggle-log').text('Save Log');
-                $('#log-info').text('');
-                if (logFileHandle) {
-                    await logFileHandle.close();
-                    logFileHandle = null;
-                }
+                saveLogToFile(logData.join('\n'));
+                $('#log-info').text('Log saved.');
+                localStorage.removeItem('logData');
+                localStorage.setItem('logging', false);
             }
         }
 
-        async function openLogFile() {
-            try {
-                const opts = {
-                    type: 'save-file',
-                    accepts: [{
-                        description: 'Text Files',
-                        extensions: ['txt'],
-                        mimeTypes: ['text/plain'],
-                    }],
-                };
-                const handle = await window.showSaveFilePicker(opts);
-                const writable = await handle.createWritable();
-                return writable;
-            } catch (e) {
-                console.error('Error opening log file:', e);
-                return null;
-            }
-        }
-
-        async function appendToLogFile(data) {
-            if (!logFileHandle) return;
-            try {
-                await logFileHandle.write(data + '\n');
-                await logFileHandle.flush(); // Ensure data is written immediately
-            } catch (e) {
-                console.error('Error writing to log file:', e);
-            }
+        function saveLogToFile(data) {
+            const blob = new Blob([data], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'log.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
         }
 
         socket.on('data', function(data) {
             $('#data-container').text(data);
-            if (logging && logFileHandle) {
-                appendToLogFile(data);
+            if (logging && (!logData.length || logData[logData.length - 1] !== data)) {
+                logData.push(data);
+                localStorage.setItem('logData', JSON.stringify(logData));
             }
         });
 
         $('#toggle-log').click(toggleLogging);
 
+        // Restore logging state from localStorage
+        if (localStorage.getItem('logging') === 'true') {
+            logging = true;
+            $('#toggle-log').text('Stop Logging');
+            $('#log-info').text('Logging started...');
+        }
+
         // Update the webpage every second
         setInterval(function() {
-            $.ajax({
-                url: '/latest_data',
-                type: 'GET',
-                success: function(response) {
-                    const data = response.data;
-                    $('#data-container').text(data);
-                    if (logging && logFileHandle) {
-                        appendToLogFile(data);
-                    }
-                }
-            });
+            socket.emit('request_update');
         }, 1000); // Update every second (1000 milliseconds)
     </script>
 </body>
