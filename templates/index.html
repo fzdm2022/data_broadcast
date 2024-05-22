@@ -58,13 +58,14 @@
             if (logging) {
                 $('#toggle-log').text('Stop Logging');
                 $('#log-info').text('Logging started...');
-                localStorage.setItem('logging', true);
+                localStorage.setItem('logging', 'true');
             } else {
                 $('#toggle-log').text('Save Log');
                 saveLogToFile(logData.join('\n'));
                 $('#log-info').text('Log saved.');
                 localStorage.removeItem('logData');
-                localStorage.setItem('logging', false);
+                localStorage.setItem('logging', 'false');
+                logData = [];
             }
         }
 
@@ -100,7 +101,7 @@
         // Update the webpage every second
         setInterval(function() {
             socket.emit('request_update');
-        }, 1000); // Update every second (1000 milliseconds)
+        }, 10); // Update every second (1000 milliseconds)
     </script>
 </body>
 </html>
