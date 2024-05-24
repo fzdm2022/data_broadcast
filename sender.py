@@ -17,7 +17,7 @@ def get_message():
     fmt = time.gmtime(t)
     message = time.strftime("%D, %T", fmt)
     dt = dt_generator.generate_random_data(6)
-    message = message + ',' + dt
+    message = str(t) + ',' + dt
     return message
 
 
