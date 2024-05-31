@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 import socket
 import threading
+import time
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins="*")
@@ -16,6 +17,9 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 1024)  # Increase bu
 sock.setblocking(False)  # Set socket to non-blocking
 
 latest_data = ""
+
+if_log = True
+logfile = None
 
 
 @socketio.on('connect')
@@ -45,13 +49,25 @@ def get_latest_data():
 
 
 def receive_udp_data():
+    if if_log:
+        logfile = initial_logging()
     while True:
         try:
             data, addr = sock.recvfrom(1024)
             if data:
-                broadcast_data(data.decode('utf-8'))
+                decoded_data = data.decode('utf-8')
+                broadcast_data(decoded_data)
+                if if_log:
+                    logfile.write(f"{time.time()} - {decoded_data}\n")
+                    logfile.flush()
+
         except BlockingIOError:
             pass
+
+
+def initial_logging():
+    log_file = open(f"log_{time.strftime('%Y%m%d_%H%M%S')}.log", 'a')
+    return log_file
 
 
 def get_ip_address():
