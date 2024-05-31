@@ -18,7 +18,7 @@ sock.setblocking(False)  # Set socket to non-blocking
 
 latest_data = ""
 
-if_log = True
+if_log = False
 logfile = None
 
 
