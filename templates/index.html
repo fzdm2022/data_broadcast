@@ -242,7 +242,7 @@ socket.on('data', function(data) {
     console.log('Formatted Timestamp:', formattedTimestamp);
 
     const lastValue = parseFloat(parsedData[parsedData.length - 1]);
-    console.log('last value:', formattedTimestamp);
+    console.log('last value:', lastValue);
 
     $('#data-container').text(data);
 
@@ -267,7 +267,9 @@ socket.on('data', function(data) {
 // Function to format timestamp (you may need to adjust this based on your timestamp format)
 function formatTimestamp(timestamp) {
     // Assuming timestamp is in milliseconds, convert it to a human-readable format
-    return new Date(parseInt(timestamp)).toLocaleString();
+    timestring = new Date(parseInt(timestamp*1000)).toLocaleString();
+    t = timestring.split(',')[1];
+    return t;
 }
 
 
