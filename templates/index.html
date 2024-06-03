@@ -124,12 +124,8 @@
             options: {
                 responsive: true,
                 scales: {
-                    x: {
-                        type: 'linear',
-                        position: 'bottom'
                     }
                 }
-            }
         });
 
         function toggleLogging() {
@@ -251,7 +247,7 @@ socket.on('data', function(data) {
         chartData.labels.shift();
         chartData.datasets[0].data.shift();
     }
-    chartData.labels.push(timestamp); // Use formatted timestamp as x-axis label
+    chartData.labels.push(formattedTimestamp); // Use formatted timestamp as x-axis label
     chartData.datasets[0].data.push(lastValue);
     console.log('Chart Data:', chartData);
     dataChart.update();
