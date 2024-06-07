@@ -8,28 +8,34 @@
         body {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            align-items: flex-start;
+            justify-content: flex-start;
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
         }
         #data-container {
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 24px;
+            padding: 10px;
+            /*border: 1px solid #ccc;*/
+            /*border-radius: 5px;*/
+            margin: 10px;
+            font-size: 10px;
             text-align: center;
-            width: 80%;
-            max-width: 600px;
-            background-color: #fff;
+            width: calc(100% - 40px);
+            max-width: 300px;
+            /*background-color: #fff;*/
+            position: fixed;
+            bottom: 0;
+            left: 0;
         }
         #log-info {
-            margin-bottom: 20px;
-            font-size: 16px;
+            margin: 10px;
+            font-size: 14px;
             color: #555;
+            position: fixed;
+            bottom: 40px;
+            left: 0;
         }
         button {
             padding: 10px 20px;
@@ -44,22 +50,51 @@
         button:hover {
             background-color: #0056b3;
         }
+        #appended-data-title {
+            margin: 10px;
+            width: calc(100% - 40px);
+            max-width: 300px;
+            /*background-color: #fff;*/
+            position: fixed;
+            top: 450px;
+            left: 0;
+            /*padding: 10px;*/
+            /*border: 1px solid #ccc;*/
+            /*border-radius: 5px 5px 0 0;*/
+            /*box-sizing: border-box;*/
+        }
+
         #appended-data-container {
-            margin-top: 20px;
-            width: 80%;
+            margin: 10px;
+            width: calc(100% - 40px);
             max-width: 600px;
-            border: 1px solid #ccc;
+            border-top: none;
+            /*border: 1px solid #ccc;*/
             padding: 10px;
             border-radius: 5px;
             background-color: #fff;
-            display: none; /* Hidden initially */
-            overflow-y: auto; /* Enable vertical scrollbar */
-            max-height: 200px; /* Limit max height */
+            display: block;
+            overflow-y: auto;
+            max-height: 250px;
+            position: fixed;
+            top: 500px;
+            left: 0;
+            /*caption-side: top;*/
         }
         #chart-container {
-            width: 80%;
+            width: calc(100% - 40px);
             max-width: 600px;
-            margin-top: 20px;
+            margin: 10px;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            position: fixed;
+            top: 300px;
+            left: 10px;
         }
         .notification {
             position: fixed;
@@ -77,20 +112,26 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <div id="appended-data-title">
+        <h3>Appended Data:</h3>
+    </div>
     <div id="data-container">
         <!-- Only the newest data will be displayed here -->
     </div>
     <div id="log-info">
         <!-- Log file path will be displayed here -->
     </div>
-    <button id="toggle-log">Save Log</button> <!-- Button to toggle logging -->
-    <button id="append-data">Append Data</button> <!-- Button to append current data -->
-    <button id="download-appended-data" style="display: none;">Download Appended Data</button> <!-- Button to download appended data -->
-    <button id="clear-appended-data" style="display: none;">Clear Appended Data</button> <!-- Button to clear appended data -->
-    <button id="clear-chart">Clear Chart</button> <!-- Button to clear chart data -->
+    <div class="button-container">
+        <button id="toggle-log">Save Log</button>
+        <button id="append-data">Append Data</button>
+        <button id="download-appended-data" style="display: none;">Download Appended Data</button>
+        <button id="clear-appended-data" style="display: none;">Clear Appended Data</button>
+        <button id="delete-last" style="display: none;">Delete Last</button>
+        <button id="clear-chart">Clear Chart</button>
+    </div>
 
     <div id="appended-data-container">
-        <h3>Appended Data:</h3>
+<!--        <h3>Appended Data:</h3>-->
         <div id="appended-data">
             <!-- Appended data will be displayed here -->
         </div>
@@ -123,9 +164,8 @@
             data: chartData,
             options: {
                 responsive: true,
-                scales: {
-                    }
-                }
+                scales: {}
+            }
         });
 
         function toggleLogging() {
@@ -165,6 +205,7 @@
                 $('#appended-data').append('<p>' + currentData + '</p>');
                 scrollToBottom('#appended-data-container');
                 $('#appended-data-container').show();
+                $('#delete-last').show();
                 $('#download-appended-data').show();
                 $('#clear-appended-data').show();
             }
@@ -185,12 +226,27 @@
             showNotification('Appended data downloaded');
         }
 
+        function deleteLastData(){
+            appendedData.pop();
+            $('#appended-data').children().last().remove();
+            if (appendedData.length === 0) {
+                $('#appended-data-container').hide();
+                $('#delete-last').hide();
+                $('#download-appended-data').hide();
+                $('#clear-appended-data').hide();
+            }
+            localStorage.setItem('appendedData', JSON.stringify(appendedData));
+            showNotification('Last data entry deleted');
+        }
+
+
         function clearAppendedData() {
             appendedData = [];
             localStorage.removeItem('appendedData');
             $('#appended-data').empty();
             $('#appended-data-container').hide();
             $('#download-appended-data').hide();
+            $('#delete-last').hide();
             $('#clear-appended-data').hide();
             showNotification('Appended data cleared');
         }
@@ -201,6 +257,7 @@
             });
             if (appendedData.length > 0) {
                 $('#appended-data-container').show();
+                $('#delete-last').show();
                 $('#download-appended-data').show();
                 $('#clear-appended-data').show();
             }
@@ -227,68 +284,61 @@
             }, 2000);
         }
 
-socket.on('data', function(data) {
-    console.log('Received data:', data);
+        function formatTimestamp(timestamp) {
+            try {
+                return new Date(parseInt(timestamp * 1000)).toLocaleTimeString();
+            } catch (e) {
+                console.error('Invalid timestamp format:', timestamp);
+                return 'Invalid time';
+            }
+        }
 
-    const parsedData = data.split(','); // Assuming data is comma-separated
-    const timestamp = parsedData[0]; // Assuming timestamp is the second item
-    console.log('Timestamp:', timestamp);
+        function processData(data) {
+            try {
+                const parsedData = data.split(',');
+                const timestamp = parsedData[0];
+                const formattedTimestamp = formatTimestamp(timestamp);
+                const lastValue = parseFloat(parsedData[parsedData.length - 1]);
 
-    const formattedTimestamp = formatTimestamp(timestamp); // Format the timestamp
-    console.log('Formatted Timestamp:', formattedTimestamp);
+                $('#data-container').text(data);
 
-    const lastValue = parseFloat(parsedData[parsedData.length - 1]);
-    console.log('last value:', lastValue);
+                if (chartData.labels.length > 100) {
+                    chartData.labels.shift();
+                    chartData.datasets[0].data.shift();
+                }
+                chartData.labels.push(formattedTimestamp);
+                chartData.datasets[0].data.push(lastValue);
+                dataChart.update();
 
-    $('#data-container').text(data);
+                if (logging && (!logData.length || logData[logData.length - 1] !== data)) {
+                    logData.push(data);
+                    localStorage.setItem('logData', JSON.stringify(logData));
+                }
+            } catch (e) {
+                console.error('Failed to process data:', data, e);
+            }
+        }
 
-    // Update chart
-    if (chartData.labels.length > 100) { // Limit to last 100 data points
-        chartData.labels.shift();
-        chartData.datasets[0].data.shift();
-    }
-    chartData.labels.push(formattedTimestamp); // Use formatted timestamp as x-axis label
-    chartData.datasets[0].data.push(lastValue);
-    console.log('Chart Data:', chartData);
-    dataChart.update();
-
-    // Update logging
-    if (logging && (!logData.length || logData[logData.length - 1] !== data)) {
-        logData.push(data);
-        localStorage.setItem('logData', JSON.stringify(logData));
-    }
-});
-
-
-// Function to format timestamp (you may need to adjust this based on your timestamp format)
-function formatTimestamp(timestamp) {
-    // Assuming timestamp is in milliseconds, convert it to a human-readable format
-    timestring = new Date(parseInt(timestamp*1000)).toLocaleString();
-    t = timestring.split(',')[1];
-    return t;
-}
-
+        socket.on('data', processData);
 
         $('#toggle-log').click(toggleLogging);
         $('#append-data').click(appendCurrentData);
         $('#download-appended-data').click(downloadAppendedData);
         $('#clear-appended-data').click(clearAppendedData);
         $('#clear-chart').click(clearChartData);
+        $('#delete-last').click(deleteLastData);
 
-        // Restore logging state from localStorage
         if (localStorage.getItem('logging') === 'true') {
             logging = true;
             $('#toggle-log').text('Stop Logging');
             $('#log-info').text('Logging started...');
         }
 
-        // Restore appended data from localStorage
         restoreAppendedData();
 
-        // Update the webpage every second
         setInterval(function() {
             socket.emit('request_update');
-        }, 1000); // Update every second (1000 milliseconds)
+        }, 1000);
     </script>
 </body>
 </html>
