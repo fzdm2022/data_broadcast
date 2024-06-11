@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, emit
 import socket
 import threading
 import time
+from data_container import DaqQueue
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins="*")
@@ -20,6 +21,7 @@ latest_data = ""
 
 if_log = False
 logfile = None
+dtQueue = DaqQueue(size=[1000, 6])
 
 
 @socketio.on('connect')
